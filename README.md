@@ -2,7 +2,7 @@
 
 Nextflow module for BWA (index + mem). Used as a git submodule by pipelines.
 
-Image: `somewhere on the GBI-EIT page`
+Image: `ghcr.io/eit-gbi/nf-mod-bwa:latest`
 
 ## Processes
 
@@ -11,10 +11,10 @@ Image: `somewhere on the GBI-EIT page`
 
 ## Use as submodule
 ```bash
-git submodule add https://github.com/CristiSoitu/nf-mod-bwa.git modules/bwa
+git submodule add https://github.com/eit-gbi/nf-mod-bwa.git modules/bwa
 ```
 
 Then in your pipeline:
-```groovy
+```
 include { BWA_INDEX; BWA_MEM } from './modules/bwa/main.nf'
 ```
