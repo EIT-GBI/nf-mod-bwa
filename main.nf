@@ -42,7 +42,8 @@ process BWA_MEM {
 //     input:
 //     tuple val(sample), path(r1), path(r2)
 //     tuple path(reference_fasta), path(reference_index_files)
-
+ 
+ 
 //     output:
 //     tuple val(sample), val(4)
 //     // tuple val(sample), path("${sample}.bam"), emit: bam
