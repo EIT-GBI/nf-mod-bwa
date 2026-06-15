@@ -1,12 +1,14 @@
 process BWA_MEM {
-    tag "${sample}"
+    tag "${meta.id}"
+    
+    publishDir "${params.outdir}/bam", mode: 'link', pattern: "*.sorted.bam"
 
     input:
-    tuple val(sample), path(r1), path(r2)
+    tuple val(meta), path(r1), path(r2)
     tuple path(fasta), path(index_files)
 
     output:
-    tuple val(sample), path("${sample}.sam"), emit: sam
+    tuple val(meta), path("${meta.id}.sorted.bam"), emit: bam
 
     script:
     def args = task.ext.args ?: ''
@@ -17,6 +19,12 @@ process BWA_MEM {
         ${fasta} \\
         ${r1} \\
         ${r2} \\
-        > ${sample}.sam
+        | samtools sort -@ ${task.cpus} \\
+            -o ${meta.id}.sorted.bam
+    """
+
+    stub:
+    """
+    touch ${meta.id}.sorted.bam
     """
 }
