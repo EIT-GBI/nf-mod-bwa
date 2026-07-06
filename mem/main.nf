@@ -14,7 +14,8 @@ process BWA_MEM {
     def args = task.ext.args ?: ''
     """
     bwa mem \\
-        ${args} \\
+        ${args} \\        
+        -R "@RG\\tID:${meta.id}\\tSM:${meta.id}\\tPL:ILLUMINA\\tLB:${meta.id}" \\
         -t ${task.cpus} \\
         ${fasta} \\
         ${r1} \\
