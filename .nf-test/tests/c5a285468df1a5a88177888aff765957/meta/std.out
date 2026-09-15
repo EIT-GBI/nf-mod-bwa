@@ -1,5 +1,0 @@
-[PIPELINE] nf-mod-bwa 0.0.0 | profile=standard
-[WORKDIR] /Users/pauline.fourgoux/Documents/Code/nf-dnaseq/modules/bwa/.nf-test/tests/c5a285468df1a5a88177888aff765957/work
-[PROCESS 08/811f2e] BWA_MEM (test)
-
-[SUCCESS] completed=1 failed=0 cached=0
