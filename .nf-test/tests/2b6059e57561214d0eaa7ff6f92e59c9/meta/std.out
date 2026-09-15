@@ -1,0 +1,5 @@
+[PIPELINE] nf-mod-bwa 0.0.0 | profile=standard
+[WORKDIR] /Users/pauline.fourgoux/Documents/Code/nf-dnaseq/modules/bwa/.nf-test/tests/2b6059e57561214d0eaa7ff6f92e59c9/work
+[PROCESS 33/73af9f] BWA_INDEX (genome)
+
+[SUCCESS] completed=1 failed=0 cached=0

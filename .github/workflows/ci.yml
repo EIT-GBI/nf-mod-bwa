@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (Nextflow strict syntax)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: '26.04.4'
+      - run: nextflow lint -o concise .
+
+  test:
+    name: nf-test
+    runs-on: ubuntu-latest
+    env:
+      # nf-test 0.9.3 generates its harness with the spread operator and a for
+      # loop, both removed by the strict parser that Nextflow 26.04 enables by
+      # default. The module code itself is strict-clean (see the lint job); this
+      # only opts the generated harness out. Drop once nf-test emits strict syntax.
+      NXF_SYNTAX_PARSER: v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: '26.04.4'
+      - uses: nf-core/setup-nf-test@v1
+        with:
+          version: '0.9.3'
+      - run: nf-test test --verbose

@@ -1,0 +1,28 @@
+name: bwa_index
+description: |
+  Build a BWA index for a reference FASTA.
+keywords:
+  - index
+  - reference
+  - alignment
+tools:
+  - bwa:
+      description: |
+        bwa
+
+input:
+  - fasta:
+      type: map/file
+      description: |
+        Reference genome FASTA.
+      pattern: "path(fasta)"
+
+output:
+  - index:
+      type: map/file
+      description: |
+        The FASTA together with its .amb/.ann/.bwt/.pac/.sa index files.
+      pattern: "tuple path(fasta), path(fasta.*)"
+
+authors:
+  - "EIT Generative Biology Institute"
