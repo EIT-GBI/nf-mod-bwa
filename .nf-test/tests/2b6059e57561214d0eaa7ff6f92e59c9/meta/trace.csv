@@ -1,2 +1,2 @@
 task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
-1	33/73af9f	154	BWA_INDEX (genome)	COMPLETED	0	2026-09-15 14:04:51.642	90ms	17ms	-	-	-	-	-
+1	ef/be28b7	13654	BWA_INDEX (genome)	COMPLETED	0	2026-09-15 14:21:20.845	78ms	17ms	-	-	-	-	-
