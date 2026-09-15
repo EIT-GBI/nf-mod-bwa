@@ -1,7 +1,6 @@
 process BWA_MEM {
     tag "${meta.id}"
     
-    // publishDir "${params.outdir}/bam", mode: 'link', pattern: "*.sorted.bam"
 
     input:
     tuple val(meta), path(r1), path(r2)
