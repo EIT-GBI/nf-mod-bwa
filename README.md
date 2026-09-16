@@ -43,7 +43,19 @@ git submodule add https://github.com/EIT-GBI/nf-mod-bwa.git modules/bwa
 git -C modules/bwa checkout v1.0.0
 ```
 
-Then in your pipeline:
+Then include the module's container config from your `nextflow.config`. Nextflow
+does not read a submodule's config on its own, so without this line the
+processes have no image:
+
+```groovy
+includeConfig 'modules/bwa/conf/module.config'
+```
+
+`conf/module.config` pins the image to the version built from this same commit,
+and carries no `manifest {}` block, so it will not overwrite your pipeline's
+own manifest. Override it in your pipeline with a `withName` selector if needed.
+
+And include the processes:
 
 ```groovy
 include { BWA_INDEX } from './modules/bwa/index/main.nf'
