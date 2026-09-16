@@ -22,6 +22,26 @@ jobs:
           version: '26.04.4'
       - run: nextflow lint -o concise .
 
+      - name: Container tag matches manifest.version
+        # release.yml moves these together; this catches a hand-edit that moves
+        # only one of them, which would ship a module pointing at the wrong image.
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP "version\s*=\s*['\"]\K[^'\"]+" nextflow.config)
+          [ -f conf/module.config ] || { echo "no conf/module.config; skipping"; exit 0; }
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          # only this repo's own image is version-locked; external ones are not
+          if grep -q "${IMAGE}" conf/module.config; then
+            TAG=$(grep -oE "${IMAGE}:v[0-9]+\.[0-9]+\.[0-9]+" conf/module.config | head -1 | sed 's/.*:v//')
+            if [ "$TAG" != "$VERSION" ]; then
+              echo "::error::conf/module.config pins v${TAG} but manifest.version is ${VERSION}"
+              exit 1
+            fi
+            echo "conf/module.config pins v${TAG}, matching manifest.version"
+          else
+            echo "conf/module.config uses an external image; nothing to check"
+          fi
+
   test:
     name: nf-test
     runs-on: ubuntu-latest
