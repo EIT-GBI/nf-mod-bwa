@@ -4,6 +4,8 @@ nextflow_process {
     script "../main.nf"
     process "BWA_INDEX"
 
+    def TEST_FA = 'file("https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/genome/genome.fasta", checkIfExists: true)'
+
     test("BWA_INDEX - stub - wiring and output names") {
 
         options "-stub-run"
@@ -11,7 +13,7 @@ nextflow_process {
         when {
             process {
                 """
-                input[0] = file("https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/genome/genome.fasta", checkIfExists: true)
+                input[0] = ${TEST_FA}
                 """
             }
         }
@@ -19,6 +21,32 @@ nextflow_process {
         then {
             assert process.success
             assert process.out.index
+        }
+    }
+
+    test("BWA_INDEX - builds the five index files bwa mem needs") {
+
+        config "../../tests.config"
+
+        when {
+            process {
+                """
+                input[0] = ${TEST_FA}
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def index_files = process.out.index[0][1].collect { file(it).name }.sort()
+
+            assert index_files == ['genome.fasta.amb', 'genome.fasta.ann',
+                                   'genome.fasta.bwt', 'genome.fasta.pac',
+                                   'genome.fasta.sa']
+            // bwa index is deterministic and writes no timestamps, so the files
+            // themselves are safe to snapshot
+            assert snapshot(process.out.index).match()
         }
     }
 }

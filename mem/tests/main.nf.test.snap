@@ -1,0 +1,34 @@
+{
+    "BWA_MEM - params.alignment drives the platform and the bwa thresholds": {
+        "content": [
+            "@RG\tID:test\tSM:test\tPL:OXFORD_NANOPORE\tLB:test",
+            "af8628d9df18b2d3d4f6fd47ef2bb872",
+            {
+                "readCount": 200,
+                "minQuality": 48,
+                "meanQuality": 59
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.6"
+        },
+        "timestamp": "2026-09-17T13:23:12.581076"
+    },
+    "BWA_MEM - aligns against a real index, defaulting the platform to ILLUMINA": {
+        "content": [
+            "@RG\tID:test\tSM:test\tPL:ILLUMINA\tLB:test",
+            "af8628d9df18b2d3d4f6fd47ef2bb872",
+            {
+                "readCount": 200,
+                "minQuality": 60,
+                "meanQuality": 60
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.6"
+        },
+        "timestamp": "2026-09-17T13:23:08.191373"
+    }
+}
