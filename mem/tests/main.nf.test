@@ -27,7 +27,7 @@ nextflow_process {
         }
     }
 
-    test("BWA_MEM - aligns against a real index, defaulting the platform to ILLUMINA") {
+    test("BWA_MEM - aligns against a real index, recording an ILLUMINA read group") {
 
         config "../../tests.config"
 
@@ -61,9 +61,9 @@ nextflow_process {
             def rg       = header.find { it.startsWith('@RG') }
             def bwa_pg   = header.findAll { it.startsWith('@PG') }.find { it.contains('ID:bwa') }
 
-            // the read group the module composes, with no params set
+            // the read group the module composes; PL is fixed at ILLUMINA
             assert rg == '@RG\tID:test\tSM:test\tPL:ILLUMINA\tLB:test'
-            // no thresholds set, so neither -k nor -T is passed
+            // nothing passed through ext.args, so neither -k nor -T is there
             assert !bwa_pg.contains(' -k ')
             assert !bwa_pg.contains(' -T ')
             // with bwa's own defaults every read maps at full mapping quality
@@ -75,9 +75,9 @@ nextflow_process {
         }
     }
 
-    test("BWA_MEM - params.alignment drives the platform and the bwa thresholds") {
+    test("BWA_MEM - passes bwa tuning flags through from ext.args") {
 
-        config "../../tests.config"
+        config "../../tests-args.config"
 
         setup {
             run("BWA_INDEX") {
@@ -91,13 +91,6 @@ nextflow_process {
         }
 
         when {
-            params {
-                alignment {
-                    platform        = 'OXFORD_NANOPORE'
-                    min_seed_length = 25
-                    min_score       = 40
-                }
-            }
             process {
                 """
                 input[0] = [[id:'test'], ${TEST_R1}, ${TEST_R2}]
@@ -115,9 +108,9 @@ nextflow_process {
             def rg       = header.find { it.startsWith('@RG') }
             def bwa_pg   = header.findAll { it.startsWith('@PG') }.find { it.contains('ID:bwa') }
 
-            // PL was hardcoded to ILLUMINA before these params existed
-            assert rg == '@RG\tID:test\tSM:test\tPL:OXFORD_NANOPORE\tLB:test'
-            // bwa records its own command line, which pins the flags
+            // PL is hardcoded in the module, so it does not move
+            assert rg == '@RG\tID:test\tSM:test\tPL:ILLUMINA\tLB:test'
+            // bwa records its own command line, which shows the flags arrived
             assert bwa_pg.contains('-k 25')
             assert bwa_pg.contains('-T 40')
             // bwa emits low-scoring reads as unmapped rather than dropping them,

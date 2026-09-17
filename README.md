@@ -22,8 +22,9 @@ module reusable across pipelines that want different result layouts.
 
 ## Tool arguments
 
-Extra tool flags are passed through `task.ext.args` (and `args2`/`args3` where a
-process runs more than one command):
+Flags are passed through `task.ext.args` (and `args2`/`args3` where a process
+runs more than one command) rather than read from pipeline `params`, so the
+module never depends on a particular pipeline's parameter names:
 
 ```groovy
 process {
@@ -33,42 +34,16 @@ process {
 }
 ```
 
-## Module-owned parameters
-
-Where a setting is a property of what the module *does* rather than of a
-particular pipeline, the module owns it: it declares the `params` names and
-builds the tool invocation from them, so every consuming pipeline configures it
-the same way instead of each one re-deriving the same flags.
-
-| Param | Process | Becomes |
-| --- | --- | --- |
-| `params.alignment.platform` | `BWA_MEM` | `PL:` in the `@RG` read group (default `ILLUMINA`) |
-| `params.alignment.min_seed_length` | `BWA_MEM` | `-k <value>` |
-| `params.alignment.min_score` | `BWA_MEM` | `-T <value>` |
-| `params.alignment.index_algorithm` | `BWA_INDEX` | `-a <value>`, to force `bwtsw` or `is` |
+`BWA_MEM` composes its own `@RG` read group from `meta.id`, with `PL` fixed at
+`ILLUMINA`. Tuning flags go through `ext.args`:
 
 ```groovy
-params {
-    alignment {
-        platform        = 'ILLUMINA'
-        min_seed_length = 19
-        min_score       = 30
+process {
+    withName: BWA_MEM {
+        ext.args = '-k 25 -T 40'
     }
 }
 ```
-
-Each may be left unset, which drops that flag; `platform` falls back to
-`ILLUMINA`, which is what the read group was hardcoded to before these params
-existed. A pipeline that sets none of them keeps its previous behaviour.
-
-`params.alignment.device` is **not** one of these, and stays with the consuming
-pipeline. It selects whether `BWA_MEM` runs at all or another aligner does,
-which is a routing decision about the pipeline rather than a setting for bwa.
-The module never reads it.
-
-Do **not** declare defaults for these in `conf/module.config`. Pipelines
-normally `includeConfig` that file *after* their own `params` block, so a
-default there would silently overwrite whatever the pipeline had set.
 
 ## Use as submodule
 
@@ -107,17 +82,19 @@ Nextflow 26.04.4 or newer.
 `nf-test test`. Each process has a stub test covering wiring and output names,
 and tests that run bwa for real against `ghcr.io/eit-gbi/nf-mod-bwa:latest` and
 snapshot what comes out. The real tests need Docker. `BWA_MEM` runs `BWA_INDEX`
-in a `setup` block to get a real index.
+in a `setup` block to get a real index, and `tests-args.config` adds tuning
+flags through `ext.args`.
 
 The `BWA_MEM` snapshots use read-level checksums via `nft-bam` rather than the
 BAM checksum: bwa and samtools each write their command line into an `@PG`
 header line, and samtools records `-@ task.cpus` there, so the file checksum
 moves whenever the config does. The read group and bwa's own `@PG` record are
-asserted directly, which pins the params to the flags they produce.
+asserted directly.
 
 Note that `-T` does not change how many reads are in the output: bwa emits
 low-scoring reads as unmapped rather than dropping them. What moves is mapping
-quality, so that is what the tests assert on.
+quality, so that is what the tests assert on - 60/60 min/mean with bwa's
+defaults against 48/59 at `-k 25 -T 40`.
 
 ## Releasing
 

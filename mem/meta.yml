@@ -10,23 +10,6 @@ tools:
       description: |
         bwa
 
-params:
-  - alignment.platform:
-      type: string
-      description: |
-        Sequencing platform recorded as `PL:` in the @RG read group. Defaults to
-        ILLUMINA when unset.
-  - alignment.min_seed_length:
-      type: integer
-      description: |
-        Minimum seed length; becomes `-k <value>`. Omit to use bwa's default.
-  - alignment.min_score:
-      type: integer
-      description: |
-        Minimum alignment score to report; becomes `-T <value>`. Omit to use
-        bwa's default. Low-scoring reads are emitted as unmapped rather than
-        dropped.
-
 input:
   - reads:
       type: map/file

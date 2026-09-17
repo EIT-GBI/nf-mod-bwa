@@ -10,13 +10,6 @@ tools:
       description: |
         bwa
 
-params:
-  - alignment.index_algorithm:
-      type: string
-      description: |
-        Forces the bwa index algorithm; becomes `-a <value>` (`bwtsw` or `is`).
-        Omit to let bwa choose from the reference size.
-
 input:
   - fasta:
       type: map/file
