@@ -1,4 +1,15 @@
 {
+    "BWA_MEM - takes the read group platform from meta": {
+        "content": [
+            "@RG\tID:test\tSM:test\tPL:OXFORD_NANOPORE\tLB:test",
+            "af8628d9df18b2d3d4f6fd47ef2bb872"
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.6"
+        },
+        "timestamp": "2026-09-17T14:47:59.539253"
+    },
     "BWA_MEM - passes bwa tuning flags through from ext.args": {
         "content": [
             "@RG\tID:test\tSM:test\tPL:ILLUMINA\tLB:test",

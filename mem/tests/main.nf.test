@@ -124,4 +124,42 @@ nextflow_process {
             assert snapshot(rg, bam(bam_path).getReadsMD5(), stats).match()
         }
     }
+
+    test("BWA_MEM - takes the read group platform from meta") {
+
+        config "../../tests.config"
+
+        setup {
+            run("BWA_INDEX") {
+                script "../../index/main.nf"
+                process {
+                    """
+                    input[0] = ${TEST_FA}
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                """
+                input[0] = [[id:'test', platform:'OXFORD_NANOPORE'], ${TEST_R1}, ${TEST_R2}]
+                input[1] = BWA_INDEX.out.index
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def bam_path = process.out.bam[0][1]
+            def header   = bam(bam_path).getHeader()
+            def rg       = header.find { it.startsWith('@RG') }
+
+            // PL was hardcoded to ILLUMINA, so a non-Illumina run recorded the
+            // wrong platform in every BAM
+            assert rg == '@RG\tID:test\tSM:test\tPL:OXFORD_NANOPORE\tLB:test'
+            assert snapshot(rg, bam(bam_path).getReadsMD5()).match()
+        }
+    }
 }

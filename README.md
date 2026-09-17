@@ -34,8 +34,20 @@ process {
 }
 ```
 
-`BWA_MEM` composes its own `@RG` read group from `meta.id`, with `PL` fixed at
-`ILLUMINA`. Tuning flags go through `ext.args`:
+`BWA_MEM` composes its own `@RG` read group from the sample's `meta`: `meta.id`
+becomes `ID`, `SM` and `LB`, and `meta.platform` becomes `PL`, defaulting to
+`ILLUMINA` when unset. Setting it per sample means one run can mix platforms.
+
+```groovy
+channel.of([[id: 'sample1', platform: 'OXFORD_NANOPORE'], r1, r2])
+// -> @RG\tID:sample1\tSM:sample1\tPL:OXFORD_NANOPORE\tLB:sample1
+```
+
+Do not pass `-R` through `ext.args` to override this: bwa accepts a second `-R`
+and silently keeps the last one, so the two read groups would not conflict
+loudly, and the override would have to restate `ID`, `SM` and `LB` as well.
+
+Tuning flags go through `ext.args`:
 
 ```groovy
 process {

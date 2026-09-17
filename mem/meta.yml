@@ -14,7 +14,9 @@ input:
   - reads:
       type: map/file
       description: |
-        Sample metadata map and the paired FASTQ files.
+        Sample metadata map and the paired FASTQ files. `meta.id` becomes ID, SM
+        and LB in the @RG read group. `meta.platform` becomes PL, defaulting to
+        ILLUMINA when it is not set.
       pattern: "tuple val(meta), path(r1), path(r2)"
   - index:
       type: map/file
