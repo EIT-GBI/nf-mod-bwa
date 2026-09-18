@@ -1,0 +1,23 @@
+{
+    "BWA_INDEX - builds the five index files bwa mem needs": {
+        "content": [
+            [
+                [
+                    "genome.fasta:md5,6e9fe4042a72f2345f644f239272b7e6",
+                    [
+                        "genome.fasta.amb:md5,3a68b8b2287e07dd3f5f95f4344ba76e",
+                        "genome.fasta.ann:md5,c32e11f6c859f166c7525a9c1d583567",
+                        "genome.fasta.bwt:md5,0469c30a1e239dd08f68afe66fde99da",
+                        "genome.fasta.pac:md5,983e3d2cd6f36e2546e6d25a0da78d66",
+                        "genome.fasta.sa:md5,ab3952cabf026b48cd3eb5bccbb636d1"
+                    ]
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.6"
+        },
+        "timestamp": "2026-09-17T13:21:20.178379"
+    }
+}

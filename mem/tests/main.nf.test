@@ -1,0 +1,165 @@
+nextflow_process {
+
+    name "Test BWA_MEM"
+    script "../main.nf"
+    process "BWA_MEM"
+
+    def TEST_FA = 'file("https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/genome/genome.fasta", checkIfExists: true)'
+    def TEST_R1 = 'file("https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/illumina/fastq/test_1.fastq.gz", checkIfExists: true)'
+    def TEST_R2 = 'file("https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/illumina/fastq/test_2.fastq.gz", checkIfExists: true)'
+
+    test("BWA_MEM - stub - wiring and output names") {
+
+        options "-stub-run"
+
+        when {
+            process {
+                """
+                input[0] = [[id:'test'], ${TEST_R1}, ${TEST_R2}]
+                input[1] = [${TEST_FA}, [file("https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/genome/genome.fasta.fai", checkIfExists: true)]]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.bam
+        }
+    }
+
+    test("BWA_MEM - aligns against a real index, recording an ILLUMINA read group") {
+
+        config "../../tests.config"
+
+        setup {
+            run("BWA_INDEX") {
+                script "../../index/main.nf"
+                process {
+                    """
+                    input[0] = ${TEST_FA}
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                """
+                input[0] = [[id:'test'], ${TEST_R1}, ${TEST_R2}]
+                input[1] = BWA_INDEX.out.index
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            // nft-bam streams the file, so every accessor needs its own reader
+            def bam_path = process.out.bam[0][1]
+            def stats    = bam(bam_path).getStatistics(include: ["readCount", "minQuality", "meanQuality"])
+            def header   = bam(bam_path).getHeader()
+            def rg       = header.find { it.startsWith('@RG') }
+            def bwa_pg   = header.findAll { it.startsWith('@PG') }.find { it.contains('ID:bwa') }
+
+            // the read group the module composes; PL is fixed at ILLUMINA
+            assert rg == '@RG\tID:test\tSM:test\tPL:ILLUMINA\tLB:test'
+            // nothing passed through ext.args, so neither -k nor -T is there
+            assert !bwa_pg.contains(' -k ')
+            assert !bwa_pg.contains(' -T ')
+            // with bwa's own defaults every read maps at full mapping quality
+            assert stats.readCount   == 200
+            assert stats.minQuality  == 60
+            assert stats.meanQuality == 60
+
+            assert snapshot(rg, bam(bam_path).getReadsMD5(), stats).match()
+        }
+    }
+
+    test("BWA_MEM - passes bwa tuning flags through from ext.args") {
+
+        config "../../tests-args.config"
+
+        setup {
+            run("BWA_INDEX") {
+                script "../../index/main.nf"
+                process {
+                    """
+                    input[0] = ${TEST_FA}
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                """
+                input[0] = [[id:'test'], ${TEST_R1}, ${TEST_R2}]
+                input[1] = BWA_INDEX.out.index
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def bam_path = process.out.bam[0][1]
+            def stats    = bam(bam_path).getStatistics(include: ["readCount", "minQuality", "meanQuality"])
+            def header   = bam(bam_path).getHeader()
+            def rg       = header.find { it.startsWith('@RG') }
+            def bwa_pg   = header.findAll { it.startsWith('@PG') }.find { it.contains('ID:bwa') }
+
+            // PL is hardcoded in the module, so it does not move
+            assert rg == '@RG\tID:test\tSM:test\tPL:ILLUMINA\tLB:test'
+            // bwa records its own command line, which shows the flags arrived
+            assert bwa_pg.contains('-k 25')
+            assert bwa_pg.contains('-T 40')
+            // bwa emits low-scoring reads as unmapped rather than dropping them,
+            // so the count is unchanged; what moves is mapping quality. Both
+            // are 60 with bwa's defaults, so this is what shows the longer seed
+            // and higher score threshold actually reached the aligner.
+            assert stats.readCount   == 200
+            assert stats.minQuality  == 48
+            assert stats.meanQuality == 59
+
+            assert snapshot(rg, bam(bam_path).getReadsMD5(), stats).match()
+        }
+    }
+
+    test("BWA_MEM - takes the read group platform from meta") {
+
+        config "../../tests.config"
+
+        setup {
+            run("BWA_INDEX") {
+                script "../../index/main.nf"
+                process {
+                    """
+                    input[0] = ${TEST_FA}
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                """
+                input[0] = [[id:'test', platform:'OXFORD_NANOPORE'], ${TEST_R1}, ${TEST_R2}]
+                input[1] = BWA_INDEX.out.index
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def bam_path = process.out.bam[0][1]
+            def header   = bam(bam_path).getHeader()
+            def rg       = header.find { it.startsWith('@RG') }
+
+            // PL was hardcoded to ILLUMINA, so a non-Illumina run recorded the
+            // wrong platform in every BAM
+            assert rg == '@RG\tID:test\tSM:test\tPL:OXFORD_NANOPORE\tLB:test'
+            assert snapshot(rg, bam(bam_path).getReadsMD5()).match()
+        }
+    }
+}

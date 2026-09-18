@@ -1,0 +1,35 @@
+name: bwa_mem
+description: |
+  Align paired-end reads with bwa mem and sort the result.
+keywords:
+  - alignment
+  - bwa
+  - bam
+tools:
+  - bwa:
+      description: |
+        bwa
+
+input:
+  - reads:
+      type: map/file
+      description: |
+        Sample metadata map and the paired FASTQ files. `meta.id` becomes ID, SM
+        and LB in the @RG read group. `meta.platform` becomes PL, defaulting to
+        ILLUMINA when it is not set.
+      pattern: "tuple val(meta), path(r1), path(r2)"
+  - index:
+      type: map/file
+      description: |
+        Reference FASTA and its BWA index files.
+      pattern: "tuple path(fasta), path(index_files)"
+
+output:
+  - bam:
+      type: map/file
+      description: |
+        Coordinate-sorted BAM.
+      pattern: "tuple val(meta), path(*.sorted.bam)"
+
+authors:
+  - "EIT Generative Biology Institute"

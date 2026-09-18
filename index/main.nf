@@ -8,7 +8,13 @@ process BWA_INDEX {
     tuple path(fasta), path("${fasta}.*"), emit: index
 
     script:
+    def args = task.ext.args ?: ''
     """
-    bwa index ${fasta}
+    bwa index ${args} ${fasta}
+    """
+
+    stub:
+    """
+    touch ${fasta}.amb ${fasta}.ann ${fasta}.bwt ${fasta}.pac ${fasta}.sa
     """
 }
