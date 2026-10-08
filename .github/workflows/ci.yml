@@ -16,7 +16,7 @@ jobs:
     name: Lint (Nextflow strict syntax)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: nf-core/setup-nextflow@v3
         with:
           version: '26.04.4'
@@ -52,7 +52,7 @@ jobs:
       # only opts the generated harness out. Drop once nf-test emits strict syntax.
       NXF_SYNTAX_PARSER: v1
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: nf-core/setup-nextflow@v3
         with:
           version: '26.04.4'
