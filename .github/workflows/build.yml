@@ -1,5 +1,8 @@
 name: build
 
+# By default this does NOT rebuild: it only builds when the Dockerfile changed
+# since the last release, and otherwise stops with "nothing to rebuild".
+#
 # Manual rebuild of the :latest image. Merges are built by release.yml, which
 # rebuilds only when the Dockerfile changed since the last release and re-tags
 # the existing image otherwise. This workflow applies the same rule, so a
@@ -12,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Rebuild even if the Dockerfile is unchanged since the last release (e.g. to pick up base-image security updates)'
+        description: 'Override: rebuild anyway, even though the Dockerfile is unchanged (normally skipped). Only for picking up base-image security updates.'
         type: boolean
         default: false
 
