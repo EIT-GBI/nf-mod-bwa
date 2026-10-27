@@ -17,6 +17,7 @@ process BWA_MEM {
     def platform = meta.platform ?: 'ILLUMINA'
     def args = task.ext.args ?: ''
     """
+    set -euo pipefail
     bwa mem \\
         ${args} \\
         -R "@RG\\tID:${meta.id}\\tSM:${meta.id}\\tPL:${platform}\\tLB:${meta.id}" \\
