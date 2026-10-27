@@ -162,4 +162,41 @@ nextflow_process {
             assert snapshot(rg, bam(bam_path).getReadsMD5()).match()
         }
     }
+
+    test("BWA_MEM - fails when bwa fails, even though samtools sort succeeds") {
+
+        config "../../tests.config"
+
+        setup {
+            run("BWA_INDEX") {
+                script "../../index/main.nf"
+                process {
+                    """
+                    input[0] = ${TEST_FA}
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                // One pair whose mates have different names. bwa writes the
+                // SAM header, then exits 1 on the name mismatch; samtools sort
+                // turns the header into a valid, empty BAM and exits 0. Without
+                // pipefail the task took sort's status and passed with that BAM
+                // (EIT-GBI/nf-dnaseq#19).
+                """
+                input[0] = [[id:'test'], file("${moduleTestDir}/data/mismatched_names_1.fastq", checkIfExists: true), file("${moduleTestDir}/data/mismatched_names_2.fastq", checkIfExists: true)]
+                input[1] = BWA_INDEX.out.index
+                """
+            }
+        }
+
+        then {
+            assert process.failed
+            // by name, so the test cannot pass on a failure of something else,
+            // such as the harness itself not compiling
+            assert process.trace.failed()*.name == ['BWA_MEM (test)']
+        }
+    }
 }
